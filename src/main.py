@@ -154,13 +154,17 @@ def perform_algorithm():
         generations,
     )
 
+    # Pasar list_statistics a valores de numpy
+    list_statistics = np.array(list_statistics)
+    generations += 1
+
     # Mostrar los resultados en una nueva ventana
     # messagebox.showinfo("Resultados", f"Resultados:\nMejor: {list_statistics["best"]}\n Peor: {list_statistics["worst"]}\n Promedio: {list_statistics["average"]}\n Poblacion final: {final_population}")
 
     # Crear ventana donde se mostrara una grafica del historial de los datos estadisticos
     tmp_win = Tk()
     tmp_win.title("Historial de datos estadisticos")
-    tmp_win.geometry("550x700")
+    tmp_win.geometry("800x700")
     tmp_win.resizable(False, False)
 
     tmp_frame = Frame(tmp_win)
@@ -170,26 +174,25 @@ def perform_algorithm():
     # Colocar la grafica en la ventana de tkinter
 
     # Crear grafica
-    figure = Figure(figsize=(5, 5), dpi=100)
+    figure = Figure(figsize=(80, 100), dpi=100)
     plot = figure.add_subplot(111)
     plot.set_title(f"Historial de datos estadisticos (Generaciones: {generations})")
     plot.set_xlabel("Generaciones")
     plot.set_ylabel("Valores")
     plot.grid()
 
-    # Obtener los datos de la grafica
-    generations = []
-    best = []
-    worst = []
-    average = []
+    # # Obtener los datos de la grafica
+    generations = np.arange(0, generations, 1)
+    best = np.array([])
+    worst = np.array([])
+    average = np.array([])
     for i in range(len(list_statistics)):
-        generations.append(i)
-        best.append(list_statistics[i]["best"]["aptitude"])
-        worst.append(list_statistics[i]["worst"]["aptitude"])
-        average.append(list_statistics[i]["average"])
+        best = np.append(best, list_statistics[i]["best"]["aptitude"])
+        worst = np.append(worst, list_statistics[i]["worst"]["aptitude"])
+        average = np.append(average, list_statistics[i]["average"])
 
-    plot.set_xticks(np.arange(0, generations[-1] + 1, 1))
-    plot.set_yticks(np.arange(0, max(best) + 1, 1))
+
+    # plot.set_yticks(best)
 
     # Colocar los datos en la grafica
     plot.plot(generations, best, label="Mejor")

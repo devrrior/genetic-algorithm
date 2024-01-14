@@ -60,6 +60,9 @@ def calculate_values(binary, interval, equation, delta_x):
     x = get_x(interval[0], i, delta_x)
     aptitude = solve_equation(equation, x)
 
+    aptitude = float(f"{aptitude:.4f}")
+    x = float(f"{x:.4f}")
+
     return {"binary": binary, "i": i, "x": x, "aptitude": aptitude}
 
 
