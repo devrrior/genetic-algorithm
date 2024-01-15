@@ -47,200 +47,210 @@ def validate_positive_int(input):
         return False
 
 
-def perform_algorithm():
-    # Obtener los datos del form
-    equation = equation_entry.get()
-    init_resolution = float(init_resolution_entry.get())
-    interval = [float(interval_min_entry.get()), float(interval_max_entry.get())]
-    init_population_num = int(init_population_entry.get())
-    max_population_num = int(max_population_entry.get())
-    prob_crossover = float(prob_crossover_entry.get())
-    prob_mutation = float(prob_mutation_entry.get())
-    prob_mutation_per_gen = float(prob_mutation_per_gen_entry.get())
-    is_using_minimum = technique_to_use.get() == "Minimo"
-    generations = int(generations_entry.get())
-
-    if equation == "":
-        messagebox.showerror("Error", "Por favor, ingrese una ecuación.")
-        return
-    if interval[0] == "" or interval[1] == "":
-        messagebox.showerror("Error", "Por favor, ingrese un intervalo.")
-        return
-    if init_population_num == "":
-        messagebox.showerror("Error", "Por favor, ingrese una población inicial.")
-        return
-    if max_population_num == "":
-        messagebox.showerror("Error", "Por favor, ingrese una población máxima.")
-        return
-    if init_resolution == "":
-        messagebox.showerror("Error", "Por favor, ingrese una resolución inicial.")
-        return
-    if prob_crossover == "":
-        messagebox.showerror(
-            "Error", "Por favor, ingrese una probabilidad de crossover."
-        )
-        return
-    if prob_mutation == "":
-        messagebox.showerror(
-            "Error", "Por favor, ingrese una probabilidad de mutación."
-        )
-        return
-    if prob_mutation_per_gen == "":
-        messagebox.showerror(
-            "Error", "Por favor, ingrese una probabilidad de mutación por gen."
-        )
-        return
-    if generations == "":
-        messagebox.showerror("Error", "Por favor, ingrese el número de generaciones.")
-        return
-    if interval[0] >= interval[1]:
-        messagebox.showerror("Error", "Por favor, ingrese un intervalo válido.")
-        return
-    if init_population_num <= 0:
-        messagebox.showerror(
-            "Error", "Por favor, ingrese una población inicial válida."
-        )
-        return
-    if max_population_num <= 0:
-        messagebox.showerror("Error", "Por favor, ingrese una población máxima válida.")
-        return
-    if init_resolution <= 0 or init_resolution >= 1:
-        messagebox.showerror(
-            "Error", "Por favor, ingrese una resolución inicial válida."
-        )
-        return
-    if prob_crossover < 0 or prob_crossover > 1:
-        messagebox.showerror(
-            "Error", "Por favor, ingrese una probabilidad de crossover válida."
-        )
-        return
-    if prob_mutation < 0 or prob_mutation > 1:
-        messagebox.showerror(
-            "Error", "Por favor, ingrese una probabilidad de mutación válida."
-        )
-        return
-    if prob_mutation_per_gen < 0 or prob_mutation_per_gen > 1:
-        messagebox.showerror(
-            "Error", "Por favor, ingrese una probabilidad de mutación por gen válida."
-        )
-        return
-
-    # Ejecutar el algoritmo
-    final_population, list_statistics = perform_genetic_algorithm(
-        equation,
-        init_population_num,
-        max_population_num,
-        init_resolution,
-        interval,
-        prob_crossover,
-        prob_mutation,
-        prob_mutation_per_gen,
-        is_using_minimum,
-        generations,
-    )
-
-    tmp_win = Tk()
-    tmp_win.title("Historial de datos estadisticos")
-    tmp_win.geometry("800x700")
-    tmp_win.resizable(False, False)
-
-    tmp_frame = Frame(tmp_win)
-    tmp_frame.pack(fill=BOTH, expand=True)
-
-    figure = Figure(figsize=(80, 100), dpi=100)
-    plot = figure.add_subplot(111)
-    plot.set_title(f"Historial de datos estadisticos (Generaciones: {generations})")
-    plot.set_xlabel("Generaciones")
-    plot.set_ylabel("Aptitud")
-    plot.grid()
-
-    generations = np.arange(0, generations, 1)
-    best = np.array([])
-    worst = np.array([])
-    average = np.array([])
-    for i in range(len(list_statistics)):
-        best = np.append(best, list_statistics[i]["best"]["aptitude"])
-        worst = np.append(worst, list_statistics[i]["worst"]["aptitude"])
-        average = np.append(average, list_statistics[i]["average"])
-
-    # Colocar los datos en la grafica
-    plot.plot(generations, best, label="Mejor")
-    plot.plot(generations, worst, label="Peor")
-    plot.plot(generations, average, label="Promedio")
-    plot.legend()
-
-    # Colocar la grafica en la ventana de tkinter
-    canvas = FigureCanvasTkAgg(figure, tmp_frame)
-    canvas.draw()
-    canvas.get_tk_widget().pack(side=TOP, fill=BOTH, expand=True)
-
-    print("Historial de datos estadisticos:")
-
-    for i in range(len(list_statistics)):
-        print(
-            f"Generacion {i}: Mejor: {list_statistics[i]['best']['aptitude']}, Peor: {list_statistics[i]['worst']['aptitude']}, Promedio: {list_statistics[i]['average']}"
-        )
-
-    tmp_win1 = Tk()
-    tmp_win1.title("Aptitud de la ultima generacion")
-    tmp_win1.geometry("800x700")
-
-    tmp_frame1 = Frame(tmp_win1)
-    tmp_frame1.pack(fill=BOTH, expand=True)
-
-    figure2 = Figure(figsize=(80, 100), dpi=100)
-    plot2 = figure2.add_subplot(111)
-    plot2.set_title(f"Aptitud de la ultima generacion")
-    plot2.set_xlabel("X")
-    plot2.set_ylabel("f(x)")
-    plot2.grid()
-
-    x = np.array([])
-    y = np.array([])
-    for i in range(len(final_population)):
-        x = np.append(x, final_population[i]["x"])
-        y = np.append(y, final_population[i]["aptitude"])
-
-    # Colocar los datos en la grafica
-    plot2.plot(x, y, 'o')
-
-    # Colocar la grafica en la ventana de tkinter
-    canvas2 = FigureCanvasTkAgg(figure2, tmp_frame1)
-    canvas2.draw()
-    canvas2.get_tk_widget().pack(side=TOP, fill=BOTH, expand=True)
-
-
-    # Nueva ventana para decir cual fue el mejor, el peor y el promedio
-    tmp_win2 = Tk()
-    tmp_win2.title("Mejor, peor y promedio, de la ultima generacion")
-    tmp_win2.geometry("310x100")
-    tmp_win.resizable(False, False)
-
-    tmp_frame2 = Frame(tmp_win2)
-    tmp_frame2.pack(fill=BOTH, expand=True)
-
-    label_info = Label(tmp_frame2, text="Mejor, peor y promedio, de la ultima generacion")
-    label_info.grid(row=0, column=0, sticky="w")
-
-    label_best = Label(tmp_frame2, text=f"Mejor: {list_statistics[-1]['best']['aptitude']}")
-    label_best.grid(row=1, column=0, sticky="w")
-
-    label_worst = Label(tmp_frame2, text=f"Peor: {list_statistics[-1]['worst']['aptitude']}")
-    label_worst.grid(row=2, column=0, sticky="w")
-
-    label_average = Label(tmp_frame2, text=f"Promedio: {list_statistics[-1]['average']}")
-    label_average.grid(row=3, column=0, sticky="w")
-
-    for child in tmp_frame2.winfo_children():
-        child.grid_configure(padx=10, pady=5)
-
-
-    tmp_win2.mainloop()
-    tmp_win1.mainloop()
-    tmp_win.mainloop()
-
-
 def show_main_window():
+    def perform_algorithm():
+        # Obtener los datos del form
+        equation = equation_entry.get()
+        init_resolution = float(init_resolution_entry.get())
+        interval = [float(interval_min_entry.get()), float(interval_max_entry.get())]
+        init_population_num = int(init_population_entry.get())
+        max_population_num = int(max_population_entry.get())
+        prob_crossover = float(prob_crossover_entry.get())
+        prob_mutation = float(prob_mutation_entry.get())
+        prob_mutation_per_gen = float(prob_mutation_per_gen_entry.get())
+        is_using_minimum = technique_to_use.get() == "Minimo"
+        generations = int(generations_entry.get())
+
+        if equation == "":
+            messagebox.showerror("Error", "Por favor, ingrese una ecuación.")
+            return
+        if interval[0] == "" or interval[1] == "":
+            messagebox.showerror("Error", "Por favor, ingrese un intervalo.")
+            return
+        if init_population_num == "":
+            messagebox.showerror("Error", "Por favor, ingrese una población inicial.")
+            return
+        if max_population_num == "":
+            messagebox.showerror("Error", "Por favor, ingrese una población máxima.")
+            return
+        if init_resolution == "":
+            messagebox.showerror("Error", "Por favor, ingrese una resolución inicial.")
+            return
+        if prob_crossover == "":
+            messagebox.showerror(
+                "Error", "Por favor, ingrese una probabilidad de crossover."
+            )
+            return
+        if prob_mutation == "":
+            messagebox.showerror(
+                "Error", "Por favor, ingrese una probabilidad de mutación."
+            )
+            return
+        if prob_mutation_per_gen == "":
+            messagebox.showerror(
+                "Error", "Por favor, ingrese una probabilidad de mutación por gen."
+            )
+            return
+        if generations == "":
+            messagebox.showerror(
+                "Error", "Por favor, ingrese el número de generaciones."
+            )
+            return
+        if interval[0] >= interval[1]:
+            messagebox.showerror("Error", "Por favor, ingrese un intervalo válido.")
+            return
+        if init_population_num <= 0:
+            messagebox.showerror(
+                "Error", "Por favor, ingrese una población inicial válida."
+            )
+            return
+        if max_population_num <= 0:
+            messagebox.showerror(
+                "Error", "Por favor, ingrese una población máxima válida."
+            )
+            return
+        if init_resolution <= 0 or init_resolution >= 1:
+            messagebox.showerror(
+                "Error", "Por favor, ingrese una resolución inicial válida."
+            )
+            return
+        if prob_crossover < 0 or prob_crossover > 1:
+            messagebox.showerror(
+                "Error", "Por favor, ingrese una probabilidad de crossover válida."
+            )
+            return
+        if prob_mutation < 0 or prob_mutation > 1:
+            messagebox.showerror(
+                "Error", "Por favor, ingrese una probabilidad de mutación válida."
+            )
+            return
+        if prob_mutation_per_gen < 0 or prob_mutation_per_gen > 1:
+            messagebox.showerror(
+                "Error",
+                "Por favor, ingrese una probabilidad de mutación por gen válida.",
+            )
+            return
+
+        # Ejecutar el algoritmo
+        final_population, list_statistics = perform_genetic_algorithm(
+            equation,
+            init_population_num,
+            max_population_num,
+            init_resolution,
+            interval,
+            prob_crossover,
+            prob_mutation,
+            prob_mutation_per_gen,
+            is_using_minimum,
+            generations,
+        )
+
+        tmp_win = Tk()
+        tmp_win.title("Historial de datos estadisticos")
+        tmp_win.geometry("800x700")
+        tmp_win.resizable(False, False)
+
+        tmp_frame = Frame(tmp_win)
+        tmp_frame.pack(fill=BOTH, expand=True)
+
+        figure = Figure(figsize=(80, 100), dpi=100)
+        plot = figure.add_subplot(111)
+        plot.set_title(f"Historial de datos estadisticos (Generaciones: {generations})")
+        plot.set_xlabel("Generaciones")
+        plot.set_ylabel("Aptitud")
+        plot.grid()
+
+        generations = np.arange(0, generations, 1)
+        best = np.array([])
+        worst = np.array([])
+        average = np.array([])
+        for i in range(len(list_statistics)):
+            best = np.append(best, list_statistics[i]["best"]["aptitude"])
+            worst = np.append(worst, list_statistics[i]["worst"]["aptitude"])
+            average = np.append(average, list_statistics[i]["average"])
+
+        # Colocar los datos en la grafica
+        plot.plot(generations, best, label="Mejor")
+        plot.plot(generations, worst, label="Peor")
+        plot.plot(generations, average, label="Promedio")
+        plot.legend()
+
+        # Colocar la grafica en la ventana de tkinter
+        canvas = FigureCanvasTkAgg(figure, tmp_frame)
+        canvas.draw()
+        canvas.get_tk_widget().pack(side=TOP, fill=BOTH, expand=True)
+
+        print("Historial de datos estadisticos:")
+
+        for i in range(len(list_statistics)):
+            print(
+                f"Generacion {i}: Mejor: {list_statistics[i]['best']['aptitude']}, Peor: {list_statistics[i]['worst']['aptitude']}, Promedio: {list_statistics[i]['average']}"
+            )
+
+        tmp_win1 = Tk()
+        tmp_win1.title("Aptitud de la ultima generacion")
+        tmp_win1.geometry("800x700")
+
+        tmp_frame1 = Frame(tmp_win1)
+        tmp_frame1.pack(fill=BOTH, expand=True)
+
+        figure2 = Figure(figsize=(80, 100), dpi=100)
+        plot2 = figure2.add_subplot(111)
+        plot2.set_title(f"Aptitud de la ultima generacion")
+        plot2.set_xlabel("X")
+        plot2.set_ylabel("f(x)")
+        plot2.grid()
+
+        x = np.array([])
+        y = np.array([])
+        for i in range(len(final_population)):
+            x = np.append(x, final_population[i]["x"])
+            y = np.append(y, final_population[i]["aptitude"])
+
+        # Colocar los datos en la grafica
+        plot2.plot(x, y, "o")
+
+        # Colocar la grafica en la ventana de tkinter
+        canvas2 = FigureCanvasTkAgg(figure2, tmp_frame1)
+        canvas2.draw()
+        canvas2.get_tk_widget().pack(side=TOP, fill=BOTH, expand=True)
+
+        # Nueva ventana para decir cual fue el mejor, el peor y el promedio
+        tmp_win2 = Tk()
+        tmp_win2.title("Mejor, peor y promedio, de la ultima generacion")
+        tmp_win2.geometry("310x100")
+        tmp_win.resizable(False, False)
+
+        tmp_frame2 = Frame(tmp_win2)
+        tmp_frame2.pack(fill=BOTH, expand=True)
+
+        label_info = Label(
+            tmp_frame2, text="Mejor, peor y promedio, de la ultima generacion"
+        )
+        label_info.grid(row=0, column=0, sticky="w")
+
+        label_best = Label(
+            tmp_frame2, text=f"Mejor: {list_statistics[-1]['best']['aptitude']}"
+        )
+        label_best.grid(row=1, column=0, sticky="w")
+
+        label_worst = Label(
+            tmp_frame2, text=f"Peor: {list_statistics[-1]['worst']['aptitude']}"
+        )
+        label_worst.grid(row=2, column=0, sticky="w")
+
+        label_average = Label(
+            tmp_frame2, text=f"Promedio: {list_statistics[-1]['average']}"
+        )
+        label_average.grid(row=3, column=0, sticky="w")
+
+        for child in tmp_frame2.winfo_children():
+            child.grid_configure(padx=10, pady=5)
+
+        tmp_win2.mainloop()
+        tmp_win1.mainloop()
+        tmp_win.mainloop()
+
     window = Tk()
     window.title("Algoritmo Genetico")
     window.geometry("550x700")
@@ -281,17 +291,17 @@ def show_main_window():
     # 2 opciones: minimo o maximo
     technique_to_use = StringVar()
     technique_to_use.set("Minimo")
-    technique_to_use_menu = OptionMenu(general_frame, technique_to_use, "Minimo", "Maximo")
+    technique_to_use_menu = OptionMenu(
+        general_frame, technique_to_use, "Minimo", "Maximo"
+    )
     technique_to_use_menu.grid(row=3, column=1)
 
     for child in general_frame.winfo_children():
         child.grid_configure(padx=10, pady=5)
 
-
     # Intervalos
     interval_frame = LabelFrame(frame, text="Intervalo")
     interval_frame.grid(row=1, column=0, padx=20, pady=10, sticky="ew")
-
 
     interval_min_label = Label(interval_frame, text="Minimo")
     interval_min_label.grid(row=0, column=0, sticky="w")
@@ -314,18 +324,21 @@ def show_main_window():
     population_frame = LabelFrame(frame, text="Datos de población")
     population_frame.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
 
-
     init_population_label = Label(population_frame, text="Poblacion inicial")
     init_population_label.grid(row=0, column=0, sticky="w")
     init_population_entry = Entry(
-        population_frame, validate="key", validatecommand=(validate_positive_int_cmd, "%P")
+        population_frame,
+        validate="key",
+        validatecommand=(validate_positive_int_cmd, "%P"),
     )
     init_population_entry.grid(row=0, column=1)
 
     max_population_label = Label(population_frame, text="Poblacion maxima")
     max_population_label.grid(row=1, column=0, sticky="w")
     max_population_entry = Entry(
-        population_frame, validate="key", validatecommand=(validate_positive_int_cmd, "%P")
+        population_frame,
+        validate="key",
+        validatecommand=(validate_positive_int_cmd, "%P"),
     )
     max_population_entry.grid(row=1, column=1)
 
@@ -364,7 +377,6 @@ def show_main_window():
     for child in probabilities_frame.winfo_children():
         child.grid_configure(padx=10, pady=5)
 
-
     # Colocar 2 botones en una misma linea
     buttons_frame = Frame(frame)
     buttons_frame.grid(row=4, column=0, padx=20, pady=10, sticky="ew")
@@ -376,7 +388,6 @@ def show_main_window():
     # Boton para mostrar la grafica
     exit_button = Button(buttons_frame, text="Salir", command=window.quit)
     exit_button.pack(side=LEFT, padx=10)
-
 
     window.columnconfigure(0, weight=1)
 
