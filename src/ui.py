@@ -180,7 +180,7 @@ def show_main_window():
         canvas.draw()
         canvas.get_tk_widget().pack(side=TOP, fill=BOTH, expand=True)
 
-        print("Historial de datos estadisticos:")
+        print("Historial de datos estadísticos:")
 
         for i in range(len(list_statistics)):
             print(
@@ -188,7 +188,7 @@ def show_main_window():
             )
 
         tmp_win1 = Tk()
-        tmp_win1.title("Aptitud de la ultima generacion")
+        tmp_win1.title("Aptitud de la última generación")
         tmp_win1.geometry("800x700")
 
         tmp_frame1 = Frame(tmp_win1)
@@ -196,7 +196,7 @@ def show_main_window():
 
         figure2 = Figure(figsize=(80, 100), dpi=100)
         plot2 = figure2.add_subplot(111)
-        plot2.set_title(f"Aptitud de la ultima generacion")
+        plot2.set_title(f"Aptitud de la última generación")
         plot2.set_xlabel("X")
         plot2.set_ylabel("f(x)")
         plot2.grid()
@@ -217,7 +217,7 @@ def show_main_window():
 
         # Nueva ventana para decir cual fue el mejor, el peor y el promedio
         tmp_win2 = Tk()
-        tmp_win2.title("Mejor, peor y promedio, de la ultima generacion")
+        tmp_win2.title("Mejor, peor y promedio, de la última generación")
         tmp_win2.geometry("310x100")
         tmp_win.resizable(False, False)
 
@@ -225,7 +225,7 @@ def show_main_window():
         tmp_frame2.pack(fill=BOTH, expand=True)
 
         label_info = Label(
-            tmp_frame2, text="Mejor, peor y promedio, de la ultima generacion"
+            tmp_frame2, text="Mejor, peor y promedio, de la última generación"
         )
         label_info.grid(row=0, column=0, sticky="w")
 
@@ -286,13 +286,13 @@ def show_main_window():
     )
     generations_entry.grid(row=2, column=1)
 
-    technique_to_use_label = Label(general_frame, text="Tecnica a usar")
+    technique_to_use_label = Label(general_frame, text="Técnica a usar")
     technique_to_use_label.grid(row=3, column=0, sticky="w")
     # 2 opciones: minimo o maximo
     technique_to_use = StringVar()
     technique_to_use.set("Minimo")
     technique_to_use_menu = OptionMenu(
-        general_frame, technique_to_use, "Minimo", "Maximo"
+        general_frame, technique_to_use, "Minimo", "Máximo"
     )
     technique_to_use_menu.grid(row=3, column=1)
 
@@ -349,7 +349,7 @@ def show_main_window():
     probabilities_frame = LabelFrame(frame, text="Probabilidades")
     probabilities_frame.grid(row=3, column=0, padx=20, pady=10, sticky="ew")
 
-    prob_crossover_label = Label(probabilities_frame, text="Probabilidad de crossover")
+    prob_crossover_label = Label(probabilities_frame, text="Probabilidad de cruce")
     prob_crossover_label.grid(row=0, column=0, sticky="w")
     prob_crossover_entry = Entry(
         probabilities_frame,
@@ -358,7 +358,7 @@ def show_main_window():
     )
     prob_crossover_entry.grid(row=0, column=1)
 
-    prob_mutation_label = Label(probabilities_frame, text="Probabilidad de mutacion")
+    prob_mutation_label = Label(probabilities_frame, text="Probabilidad de mutacion por individuo")
     prob_mutation_label.grid(row=1, column=0, sticky="w")
     prob_mutation_entry = Entry(
         probabilities_frame,
