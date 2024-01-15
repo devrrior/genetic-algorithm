@@ -142,7 +142,7 @@ def perform_algorithm():
     tmp_win = Tk()
     tmp_win.title("Historial de datos estadisticos")
     tmp_win.geometry("800x700")
-    # tmp_win.resizable(False, False)
+    tmp_win.resizable(False, False)
 
     tmp_frame = Frame(tmp_win)
     tmp_frame.pack(fill=BOTH, expand=True)
@@ -184,7 +184,6 @@ def perform_algorithm():
     tmp_win1 = Tk()
     tmp_win1.title("Aptitud de la ultima generacion")
     tmp_win1.geometry("800x700")
-    # tmp_win.resizable(False, False)
 
     tmp_frame1 = Frame(tmp_win1)
     tmp_frame1.pack(fill=BOTH, expand=True)
@@ -215,7 +214,7 @@ def perform_algorithm():
     tmp_win2 = Tk()
     tmp_win2.title("Mejor, peor y promedio, de la ultima generacion")
     tmp_win2.geometry("310x100")
-    # tmp_win.resizable(False, False)
+    tmp_win.resizable(False, False)
 
     tmp_frame2 = Frame(tmp_win2)
     tmp_frame2.pack(fill=BOTH, expand=True)
