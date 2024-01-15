@@ -7,19 +7,6 @@ import numpy as np
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 
-# Crear interfaz para aplicar el algoritmo genetico
-# Se necesitara los siguientes parametros en un form:
-# Estos parametros dependerán del usuario
-# equation = "sin(x)" # se debe asegurar que la ecuación sea válida
-# init_population_num = 4 # debe de ser un numero entero
-# max_population_num = 10 # debe de ser un numero entero
-# init_resolution = 0.05 # debe de ser un numero decimal, entre 0 y 1
-# interval = [-10, 10]  # el primer digito debe de ser menor al segundo
-# prob_crossover = 0.40 # debe de ser un numero decimal, entre 0 y 1
-# prob_mutation = 0.75 # debe de ser un numero decimal, entre 0 y 1
-# prob_mutation_per_gen = 0.51 # debe de ser un numero decimal, entre 0 y 1
-# is_using_minimum = True # booleano para saber si se quiere encontrar el minimo o el maximo
-
 
 def validate_probability(input_text):
     if input_text == "":
@@ -73,11 +60,9 @@ def perform_algorithm():
     is_using_minimum = technique_to_use.get() == "Minimo"
     generations = int(generations_entry.get())
 
-    # Validar que los datos sean correctos
     if equation == "":
         messagebox.showerror("Error", "Por favor, ingrese una ecuación.")
         return
-    # Validar que los datos contienen valores
     if interval[0] == "" or interval[1] == "":
         messagebox.showerror("Error", "Por favor, ingrese un intervalo.")
         return
@@ -141,7 +126,7 @@ def perform_algorithm():
         return
 
     # Ejecutar el algoritmo
-    final_population, list_statistics = perform_genetic_algorithm(
+    _, list_statistics = perform_genetic_algorithm(
         equation,
         init_population_num,
         max_population_num,
@@ -154,14 +139,6 @@ def perform_algorithm():
         generations,
     )
 
-    # Pasar list_statistics a valores de numpy
-    # list_statistics = np.array(list_statistics)
-    # generations += 1
-
-    # Mostrar los resultados en una nueva ventana
-    # messagebox.showinfo("Resultados", f"Resultados:\nMejor: {list_statistics["best"]}\n Peor: {list_statistics["worst"]}\n Promedio: {list_statistics["average"]}\n Poblacion final: {final_population}")
-
-    # Crear ventana donde se mostrara una grafica del historial de los datos estadisticos
     tmp_win = Tk()
     tmp_win.title("Historial de datos estadisticos")
     tmp_win.geometry("800x700")
@@ -170,10 +147,6 @@ def perform_algorithm():
     tmp_frame = Frame(tmp_win)
     tmp_frame.pack(fill=BOTH, expand=True)
 
-    # Crear grafica donde se muestre a traves de las generaciones el mejor, peor y promedio
-    # Colocar la grafica en la ventana de tkinter
-
-    # Crear grafica
     figure = Figure(figsize=(80, 100), dpi=100)
     plot = figure.add_subplot(111)
     plot.set_title(f"Historial de datos estadisticos (Generaciones: {generations})")
@@ -181,7 +154,6 @@ def perform_algorithm():
     plot.set_ylabel("Valores")
     plot.grid()
 
-    # # Obtener los datos de la grafica
     generations = np.arange(0, generations, 1)
     best = np.array([])
     worst = np.array([])
@@ -190,9 +162,6 @@ def perform_algorithm():
         best = np.append(best, list_statistics[i]["best"]["aptitude"])
         worst = np.append(worst, list_statistics[i]["worst"]["aptitude"])
         average = np.append(average, list_statistics[i]["average"])
-
-
-    # plot.set_yticks(best)
 
     # Colocar los datos en la grafica
     plot.plot(generations, best, label="Mejor")

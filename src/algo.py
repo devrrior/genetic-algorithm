@@ -1,56 +1,12 @@
-import random
-from sympy import symbols, sympify
 import numpy as np
-
-# Estos parametros dependerán del usuario
-# equation = "sin(x)"  # se debe asegurar que la ecuación sea válida
-# init_population_num = 4  # debe de ser un numero entero
-# max_population_num = 10  # debe de ser un numero entero
-# init_resolution = 0.05  # debe de ser un numero decimal, entre 0 y 1
-# interval = [-10, 10]  # el primer digito debe de ser menor al segundo
-# prob_crossover = 0.40  # debe de ser un numero decimal, entre 0 y 1
-# prob_mutation = 0.75  # debe de ser un numero decimal, entre 0 y 1
-# prob_mutation_per_gen = 0.51  # debe de ser un numero decimal, entre 0 y 1
-
-
-# Utils
-def find_bits_num(points_num):
-    n = 1
-    while not 2 ** (n - 1) < points_num <= 2**n:
-        n += 1
-    return n
-
-
-def get_random_int(min, max):
-    return random.randint(min, max)
-
-
-def get_x(interval_min, i, delta_x):
-    return interval_min + i * delta_x
-
-
-def get_random_binary(num_bits):
-    if num_bits <= 0:
-        raise ValueError("The number of bits must be greater than zero")
-
-    random_bits = np.random.choice([0, 1], size=num_bits)
-    binary = "".join(map(str, random_bits))
-
-    return binary
-
-
-def convert_binary_to_int(binary):
-    return int(binary, 2)
-
-
-def solve_equation(expression, x_value):
-    x = symbols("x")
-
-    equation = sympify(expression)
-
-    solution = equation.subs(x, x_value)
-
-    return solution
+from utils import (
+    find_bits_num,
+    get_random_int,
+    get_x,
+    get_random_binary,
+    convert_binary_to_int,
+    solve_equation,
+)
 
 
 def calculate_values(binary, interval, equation, delta_x):
@@ -139,14 +95,13 @@ def get_statistics(population, is_using_min):
 
 
 def deletion(population, best_individual, max_population_num):
-    # Si hay individuos repetidos, DEBERÁN mantener sólo uno de estos en la población y enseguida si aplica, realizar la poda.
     # Remover los individuos repetidos
     temp_population = []
     for individual in population:
         if individual not in temp_population:
             temp_population.append(individual)
 
-    # Implementa logica donde la eliminación sea aleatoria asegurando mantener al mejor individuo de la población.
+    # Mantener el mejor individuo
     purged_population = []
     for individual in temp_population:
         if individual["aptitude"] == best_individual["aptitude"]:
@@ -184,7 +139,12 @@ def perform_genetic_algorithm(
 
     # Generar población inicial de manera eficiente usando NumPy
     random_binaries = [get_random_binary(bits_num) for _ in range(init_population_num)]
-    init_population = np.array([calculate_values(binary, interval, equation, delta_x) for binary in random_binaries])
+    init_population = np.array(
+        [
+            calculate_values(binary, interval, equation, delta_x)
+            for binary in random_binaries
+        ]
+    )
 
     statistics_history = []
     prev_population = init_population
@@ -195,11 +155,23 @@ def perform_genetic_algorithm(
         pairs = get_pairs_to_crossover(selected_population)
 
         # Cruce y Mutación utilizando NumPy
-        new_unmutated_population = np.array([crossover(pair[0], pair[1]) for pair in pairs]).flatten()
+        new_unmutated_population = np.array(
+            [crossover(pair[0], pair[1]) for pair in pairs]
+        ).flatten()
         mutation_mask = np.random.rand(len(new_unmutated_population)) <= prob_mutation
-        new_unmutated_population = np.array([mutate_gen(ind, prob_mutation_per_gen) if should_mutate else ind for ind, should_mutate in zip(new_unmutated_population, mutation_mask)])
+        new_unmutated_population = np.array(
+            [
+                mutate_gen(ind, prob_mutation_per_gen) if should_mutate else ind
+                for ind, should_mutate in zip(new_unmutated_population, mutation_mask)
+            ]
+        )
 
-        new_population = np.array([calculate_values(ind, interval, equation, delta_x) for ind in new_unmutated_population])
+        new_population = np.array(
+            [
+                calculate_values(ind, interval, equation, delta_x)
+                for ind in new_unmutated_population
+            ]
+        )
 
         # Juntar poblaciones y recolección de estadísticas
         new_population = np.concatenate([prev_population, new_population])
@@ -207,7 +179,9 @@ def perform_genetic_algorithm(
         statistics_history.append(statistics)
 
         # Poda
-        purged_population = deletion(new_population, statistics["best"], max_population_num)
+        purged_population = deletion(
+            new_population, statistics["best"], max_population_num
+        )
         prev_population = purged_population
 
     return prev_population, statistics_history
