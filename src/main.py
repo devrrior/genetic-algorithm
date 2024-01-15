@@ -155,8 +155,8 @@ def perform_algorithm():
     )
 
     # Pasar list_statistics a valores de numpy
-    list_statistics = np.array(list_statistics)
-    generations += 1
+    # list_statistics = np.array(list_statistics)
+    # generations += 1
 
     # Mostrar los resultados en una nueva ventana
     # messagebox.showinfo("Resultados", f"Resultados:\nMejor: {list_statistics["best"]}\n Peor: {list_statistics["worst"]}\n Promedio: {list_statistics["average"]}\n Poblacion final: {final_population}")

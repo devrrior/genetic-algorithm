@@ -1,5 +1,6 @@
 import random
 from sympy import symbols, sympify
+import numpy as np
 
 # Estos parametros dependerán del usuario
 # equation = "sin(x)"  # se debe asegurar que la ecuación sea válida
@@ -32,17 +33,14 @@ def get_random_binary(num_bits):
     if num_bits <= 0:
         raise ValueError("The number of bits must be greater than zero")
 
-    binary = ""
-    for _ in range(num_bits):
-        random_bit = random.choice(["0", "1"])
-        binary += random_bit
+    random_bits = np.random.choice([0, 1], size=num_bits)
+    binary = "".join(map(str, random_bits))
 
     return binary
 
 
 def convert_binary_to_int(binary):
-    integer_value = int(binary, 2)
-    return integer_value
+    return int(binary, 2)
 
 
 def solve_equation(expression, x_value):
@@ -107,12 +105,13 @@ def crossover(individual1, individual2):
 
 
 def mutate_gen(binary, prob_mutation_per_gen):
-    for i in range(len(binary)):
-        if (get_random_int(0, 100) / 100) <= prob_mutation_per_gen:
-            # Negar el bit
-            binary = binary[:i] + str(int(not int(binary[i]))) + binary[i + 1 :]
+    mutation_mask = np.random.rand(len(binary)) <= prob_mutation_per_gen
+    mutated_bits = np.logical_xor(
+        np.array(list(map(int, binary))), mutation_mask
+    ).astype(int)
+    mutated_binary = "".join(map(str, mutated_bits))
 
-    return binary
+    return mutated_binary
 
 
 def get_statistics(population, is_using_min):
@@ -178,23 +177,16 @@ def perform_genetic_algorithm(
 ):
     # Calcular datos necesarios
     range_int = interval[1] - interval[0]
-    points_num = (range_int / init_resolution) + 1
+    points_num = int((range_int / init_resolution) + 1)
 
     bits_num = find_bits_num(points_num)
     delta_x = range_int / (2 ** (bits_num) - 1)
 
-    # Generar población inicial
-    init_population = []
+    # Generar población inicial de manera eficiente usando NumPy
+    random_binaries = [get_random_binary(bits_num) for _ in range(init_population_num)]
+    init_population = np.array([calculate_values(binary, interval, equation, delta_x) for binary in random_binaries])
+
     statistics_history = []
-
-    for _ in range(init_population_num):
-        binary = get_random_binary(bits_num)
-        new_individual = calculate_values(binary, interval, equation, delta_x)
-
-        init_population.append(new_individual)
-
-    statistics = get_statistics(init_population, is_using_min)
-    statistics_history.append(statistics)
     prev_population = init_population
 
     for _ in range(generations):
@@ -202,43 +194,20 @@ def perform_genetic_algorithm(
         selected_population = get_eligible_to_crossover(init_population, prob_crossover)
         pairs = get_pairs_to_crossover(selected_population)
 
-        # Cruce
-        new_unmutated_population = []
-        for pair in pairs:
-            new_individuals = crossover(pair[0], pair[1])
+        # Cruce y Mutación utilizando NumPy
+        new_unmutated_population = np.array([crossover(pair[0], pair[1]) for pair in pairs]).flatten()
+        mutation_mask = np.random.rand(len(new_unmutated_population)) <= prob_mutation
+        new_unmutated_population = np.array([mutate_gen(ind, prob_mutation_per_gen) if should_mutate else ind for ind, should_mutate in zip(new_unmutated_population, mutation_mask)])
 
-            new_unmutated_population.extend(new_individuals)
+        new_population = np.array([calculate_values(ind, interval, equation, delta_x) for ind in new_unmutated_population])
 
-        # Mutacion
-        new_mutated_population = []
-        for i in range(len(new_unmutated_population)):
-            # TODO: Por cada individuo, se genera un numero aleatorio, si este es menor o igual al umbral de mutacion, se muta
-            if (get_random_int(0, 100) / 100) <= prob_mutation:
-                new_unmutated_population[i] = mutate_gen(
-                    new_unmutated_population[i], prob_mutation_per_gen
-                )
-
-            new_mutated_population.append(new_unmutated_population[i])
-
-        new_population = []
-        for individual in new_mutated_population:
-            individual_with_data = calculate_values(
-                individual, interval, equation, delta_x
-            )
-            new_population.append(individual_with_data)
-
-        # Juntar poblaciones
-        new_population.extend(prev_population)
-
-        # Recoleccion de estadisticas
+        # Juntar poblaciones y recolección de estadísticas
+        new_population = np.concatenate([prev_population, new_population])
         statistics = get_statistics(new_population, is_using_min)
         statistics_history.append(statistics)
 
         # Poda
-        purged_population = deletion(
-            new_population, statistics["best"], max_population_num
-        )
-
+        purged_population = deletion(new_population, statistics["best"], max_population_num)
         prev_population = purged_population
 
     return prev_population, statistics_history
