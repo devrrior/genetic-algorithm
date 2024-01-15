@@ -126,7 +126,7 @@ def perform_algorithm():
         return
 
     # Ejecutar el algoritmo
-    _, list_statistics = perform_genetic_algorithm(
+    final_population, list_statistics = perform_genetic_algorithm(
         equation,
         init_population_num,
         max_population_num,
@@ -142,7 +142,7 @@ def perform_algorithm():
     tmp_win = Tk()
     tmp_win.title("Historial de datos estadisticos")
     tmp_win.geometry("800x700")
-    tmp_win.resizable(False, False)
+    # tmp_win.resizable(False, False)
 
     tmp_frame = Frame(tmp_win)
     tmp_frame.pack(fill=BOTH, expand=True)
@@ -151,7 +151,7 @@ def perform_algorithm():
     plot = figure.add_subplot(111)
     plot.set_title(f"Historial de datos estadisticos (Generaciones: {generations})")
     plot.set_xlabel("Generaciones")
-    plot.set_ylabel("Valores")
+    plot.set_ylabel("Aptitud")
     plot.grid()
 
     generations = np.arange(0, generations, 1)
@@ -181,6 +181,63 @@ def perform_algorithm():
             f"Generacion {i}: Mejor: {list_statistics[i]['best']['aptitude']}, Peor: {list_statistics[i]['worst']['aptitude']}, Promedio: {list_statistics[i]['average']}"
         )
 
+    tmp_win1 = Tk()
+    tmp_win1.title("Aptitud de la ultima generacion")
+    tmp_win1.geometry("800x700")
+    # tmp_win.resizable(False, False)
+
+    tmp_frame1 = Frame(tmp_win1)
+    tmp_frame1.pack(fill=BOTH, expand=True)
+
+    figure2 = Figure(figsize=(80, 100), dpi=100)
+    plot2 = figure2.add_subplot(111)
+    plot2.set_title(f"Aptitud de la ultima generacion")
+    plot2.set_xlabel("X")
+    plot2.set_ylabel("f(x)")
+    plot2.grid()
+
+    x = np.array([])
+    y = np.array([])
+    for i in range(len(final_population)):
+        x = np.append(x, final_population[i]["x"])
+        y = np.append(y, final_population[i]["aptitude"])
+
+    # Colocar los datos en la grafica
+    plot2.plot(x, y, 'o')
+
+    # Colocar la grafica en la ventana de tkinter
+    canvas2 = FigureCanvasTkAgg(figure2, tmp_frame1)
+    canvas2.draw()
+    canvas2.get_tk_widget().pack(side=TOP, fill=BOTH, expand=True)
+
+
+    # Nueva ventana para decir cual fue el mejor, el peor y el promedio
+    tmp_win2 = Tk()
+    tmp_win2.title("Mejor, peor y promedio, de la ultima generacion")
+    tmp_win2.geometry("310x100")
+    # tmp_win.resizable(False, False)
+
+    tmp_frame2 = Frame(tmp_win2)
+    tmp_frame2.pack(fill=BOTH, expand=True)
+
+    label_info = Label(tmp_frame2, text="Mejor, peor y promedio, de la ultima generacion")
+    label_info.grid(row=0, column=0, sticky="w")
+
+    label_best = Label(tmp_frame2, text=f"Mejor: {list_statistics[-1]['best']['aptitude']}")
+    label_best.grid(row=1, column=0, sticky="w")
+
+    label_worst = Label(tmp_frame2, text=f"Peor: {list_statistics[-1]['worst']['aptitude']}")
+    label_worst.grid(row=2, column=0, sticky="w")
+
+    label_average = Label(tmp_frame2, text=f"Promedio: {list_statistics[-1]['average']}")
+    label_average.grid(row=3, column=0, sticky="w")
+
+    for child in tmp_frame2.winfo_children():
+        child.grid_configure(padx=10, pady=5)
+
+
+    tmp_win2.mainloop()
+    tmp_win1.mainloop()
     tmp_win.mainloop()
 
 

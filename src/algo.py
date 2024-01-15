@@ -89,7 +89,7 @@ def get_statistics(population, is_using_min):
 
         average += individual["aptitude"]
 
-    average = average / len(population)
+    average = float(f"{average / len(population):.4f}")
 
     return {"best": best, "worst": worst, "average": average}
 
