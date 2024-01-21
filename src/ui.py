@@ -180,13 +180,6 @@ def show_main_window():
         canvas.draw()
         canvas.get_tk_widget().pack(side=TOP, fill=BOTH, expand=True)
 
-        print("Historial de datos estadísticos:")
-
-        for i in range(len(list_statistics)):
-            print(
-                f"Generacion {i}: Mejor: {list_statistics[i]['best']['aptitude']}, Peor: {list_statistics[i]['worst']['aptitude']}, Promedio: {list_statistics[i]['average']}"
-            )
-
         tmp_win1 = Tk()
         tmp_win1.title("Aptitud de la última generación")
         tmp_win1.geometry("800x700")
@@ -207,8 +200,25 @@ def show_main_window():
             x = np.append(x, final_population[i]["x"])
             y = np.append(y, final_population[i]["aptitude"])
 
+        # ordenar los datos
+        x, y = zip(*sorted(zip(x, y)))
+
         # Colocar los datos en la grafica
-        plot2.plot(x, y, "o")
+        plot2.plot(x, y, label="Aptitud")
+        plot2.legend()
+
+        # remarcar el mejor y el peor de la ultima generacion
+        best = final_population[0]
+        worst = final_population[0]
+        for i in range(len(final_population)):
+            if final_population[i]["aptitude"] > best["aptitude"]:
+                best = final_population[i]
+            if final_population[i]["aptitude"] < worst["aptitude"]:
+                worst = final_population[i]
+
+        plot2.plot(best["x"], best["aptitude"], "o", label="Mejor", color="green")
+        plot2.plot(worst["x"], worst["aptitude"], "o", label="Peor", color="red")
+        plot2.legend()
 
         # Colocar la grafica en la ventana de tkinter
         canvas2 = FigureCanvasTkAgg(figure2, tmp_frame1)
@@ -358,7 +368,9 @@ def show_main_window():
     )
     prob_crossover_entry.grid(row=0, column=1)
 
-    prob_mutation_label = Label(probabilities_frame, text="Probabilidad de mutacion por individuo")
+    prob_mutation_label = Label(
+        probabilities_frame, text="Probabilidad de mutacion por individuo"
+    )
     prob_mutation_label.grid(row=1, column=0, sticky="w")
     prob_mutation_entry = Entry(
         probabilities_frame,
