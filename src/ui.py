@@ -7,16 +7,11 @@ import moviepy.editor as mpy
 from natsort import natsorted
 
 
-from matplotlib.figure import Figure
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
-
 import os
 import shutil
 import numpy as np
 import matplotlib.pyplot as plt
-from tkinter import Tk, Frame, BOTH, TOP
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-import imageio
+from tkinter import Tk, Frame, BOTH
 
 
 def validate_probability(input_text):
@@ -156,22 +151,6 @@ def show_main_window():
             generations,
         )
 
-        # Primera grafica
-        tmp_win = Tk()
-        tmp_win.title("Historial de datos estadisticos")
-        tmp_win.geometry("800x700")
-        tmp_win.resizable(False, False)
-
-        tmp_frame = Frame(tmp_win)
-        tmp_frame.pack(fill=BOTH, expand=True)
-
-        figure = Figure(figsize=(80, 100), dpi=100)
-        plot = figure.add_subplot(111)
-        plot.set_title(f"Historial de datos estadisticos (Generaciones: {generations})")
-        plot.set_xlabel("Generaciones")
-        plot.set_ylabel("Aptitud")
-        plot.grid()
-
         generations = np.arange(0, generations, 1)
         best = np.array([])
         worst = np.array([])
@@ -181,70 +160,22 @@ def show_main_window():
             worst = np.append(worst, statistics_history[i]["worst"]["aptitude"])
             average = np.append(average, statistics_history[i]["average"])
 
-        # Colocar los datos en la grafica
-        plot.plot(generations, best, label="Mejor")
-        plot.plot(generations, worst, label="Peor")
-        plot.plot(generations, average, label="Promedio")
-        plot.legend()
-
-        # Colocar la grafica en la ventana de tkinter
-        canvas = FigureCanvasTkAgg(figure, tmp_frame)
-        canvas.draw()
-        canvas.get_tk_widget().pack(side=TOP, fill=BOTH, expand=True)
-
-        # End: primera grafica
-
-        tmp_win1 = Tk()
-        tmp_win1.title("Aptitud de la última generación")
-        tmp_win1.geometry("800x700")
-
-        tmp_frame1 = Frame(tmp_win1)
-        tmp_frame1.pack(fill=BOTH, expand=True)
-
-        figure2 = Figure(figsize=(80, 100), dpi=100)
-        plot2 = figure2.add_subplot(111)
-        plot2.set_title(f"Aptitud de la última generación")
-        plot2.set_xlabel("X")
-        plot2.set_ylabel("f(x)")
-        plot2.grid()
-
-        x = np.array([])
-        y = np.array([])
-        last_generation = population_history[-1]
-        best = last_generation[0]
-        worst = last_generation[0]
-
-        # print(last_generation)
-        for individual in last_generation:
-            x = np.append(x, individual["x"])
-            y = np.append(y, individual["aptitude"])
-
-            if individual["aptitude"] > best["aptitude"]:
-                best = individual
-            if individual["aptitude"] < worst["aptitude"]:
-                worst = individual
-
-        # ordenar los datos
-        x, y = zip(*sorted(zip(x, y)))
-
-        # Colocar los datos en la grafica
-        plot2.plot(x, y, label="Aptitud")
-        plot2.legend()
-
-        plot2.plot(best["x"], best["aptitude"], "o", label="Mejor", color="green")
-        plot2.plot(worst["x"], worst["aptitude"], "o", label="Peor", color="red")
-        plot2.legend()
-
-        # Colocar la grafica en la ventana de tkinter
-        canvas2 = FigureCanvasTkAgg(figure2, tmp_frame1)
-        canvas2.draw()
-        canvas2.get_tk_widget().pack(side=TOP, fill=BOTH, expand=True)
+        stats_figure = plt.figure(1)
+        plt.plot(generations, best, label="Mejor")
+        plt.plot(generations, worst, label="Peor")
+        plt.plot(generations, average, label="Promedio")
+        plt.xlabel("Generaciones")
+        plt.xlim(0, generations[-1])
+        plt.ylabel("Aptitud")
+        plt.title(f"Historial de datos estadisticos (Generaciones: {generations})")
+        plt.legend(loc="upper right")
+        plt.grid()
+        stats_figure.show()
 
         # Nueva ventana para decir cual fue el mejor, el peor y el promedio
         tmp_win2 = Tk()
         tmp_win2.title("Mejor, peor y promedio, de la última generación")
         tmp_win2.geometry("310x100")
-        tmp_win.resizable(False, False)
 
         tmp_frame2 = Frame(tmp_win2)
         tmp_frame2.pack(fill=BOTH, expand=True)
@@ -272,12 +203,7 @@ def show_main_window():
         for child in tmp_frame2.winfo_children():
             child.grid_configure(padx=10, pady=5)
 
-        # Generar una grafica por generacion, y guardarla en una carpeta
-        # La grafica será de tipo scatter, con los puntos de la poblacion
-        # Se destacaran los puntos de mejor y peor aptitud
-        # Se guardaran en una carpeta temporal
-        # Se generara un gif con las imagenes de las graficas
-        # Las graficas no se mostraran en pantalla
+        # end: Nueva ventana para decir cual fue el mejor, el peor y el promedio
 
         # Crear carpeta temporal
         if os.path.exists("tmp"):
@@ -319,20 +245,18 @@ def show_main_window():
         # Generar video mp4 con las graficas
 
         # Obtener lista de imagenes, hacer un sort para que se ordenen
-        images = natsorted([
-            os.path.join("tmp", fn)
-            for fn in os.listdir("tmp")
-            if fn.endswith(".png")
-        ])
+        images = natsorted(
+            [os.path.join("tmp", fn) for fn in os.listdir("tmp") if fn.endswith(".png")]
+        )
 
         clip = mpy.ImageSequenceClip(images, fps=1)
 
         # Guardar el video
-        clip.write_videofile("animation.mp4")
+        clip.write_videofile("evolution_gens.mp4")
+
+        # Crear ventana donde reproduzca el video en infinite loop
 
         tmp_win2.mainloop()
-        tmp_win1.mainloop()
-        tmp_win.mainloop()
 
     window = Tk()
     window.title("Algoritmo Genetico")
