@@ -3,9 +3,20 @@ from tkinter import messagebox
 from gentic_algorithm import perform_genetic_algorithm
 import matplotlib.pyplot as plt
 import numpy as np
+import moviepy.editor as mpy
+from natsort import natsorted
+
 
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
+
+import os
+import shutil
+import numpy as np
+import matplotlib.pyplot as plt
+from tkinter import Tk, Frame, BOTH, TOP
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import imageio
 
 
 def validate_probability(input_text):
@@ -132,7 +143,7 @@ def show_main_window():
             return
 
         # Ejecutar el algoritmo
-        final_population, list_statistics = perform_genetic_algorithm(
+        population_history, statistics_history = perform_genetic_algorithm(
             equation,
             init_population_num,
             max_population_num,
@@ -145,6 +156,7 @@ def show_main_window():
             generations,
         )
 
+        # Primera grafica
         tmp_win = Tk()
         tmp_win.title("Historial de datos estadisticos")
         tmp_win.geometry("800x700")
@@ -164,10 +176,10 @@ def show_main_window():
         best = np.array([])
         worst = np.array([])
         average = np.array([])
-        for i in range(len(list_statistics)):
-            best = np.append(best, list_statistics[i]["best"]["aptitude"])
-            worst = np.append(worst, list_statistics[i]["worst"]["aptitude"])
-            average = np.append(average, list_statistics[i]["average"])
+        for i in range(len(statistics_history)):
+            best = np.append(best, statistics_history[i]["best"]["aptitude"])
+            worst = np.append(worst, statistics_history[i]["worst"]["aptitude"])
+            average = np.append(average, statistics_history[i]["average"])
 
         # Colocar los datos en la grafica
         plot.plot(generations, best, label="Mejor")
@@ -179,6 +191,8 @@ def show_main_window():
         canvas = FigureCanvasTkAgg(figure, tmp_frame)
         canvas.draw()
         canvas.get_tk_widget().pack(side=TOP, fill=BOTH, expand=True)
+
+        # End: primera grafica
 
         tmp_win1 = Tk()
         tmp_win1.title("Aptitud de la última generación")
@@ -196,9 +210,19 @@ def show_main_window():
 
         x = np.array([])
         y = np.array([])
-        for i in range(len(final_population)):
-            x = np.append(x, final_population[i]["x"])
-            y = np.append(y, final_population[i]["aptitude"])
+        last_generation = population_history[-1]
+        best = last_generation[0]
+        worst = last_generation[0]
+
+        # print(last_generation)
+        for individual in last_generation:
+            x = np.append(x, individual["x"])
+            y = np.append(y, individual["aptitude"])
+
+            if individual["aptitude"] > best["aptitude"]:
+                best = individual
+            if individual["aptitude"] < worst["aptitude"]:
+                worst = individual
 
         # ordenar los datos
         x, y = zip(*sorted(zip(x, y)))
@@ -206,15 +230,6 @@ def show_main_window():
         # Colocar los datos en la grafica
         plot2.plot(x, y, label="Aptitud")
         plot2.legend()
-
-        # remarcar el mejor y el peor de la ultima generacion
-        best = final_population[0]
-        worst = final_population[0]
-        for i in range(len(final_population)):
-            if final_population[i]["aptitude"] > best["aptitude"]:
-                best = final_population[i]
-            if final_population[i]["aptitude"] < worst["aptitude"]:
-                worst = final_population[i]
 
         plot2.plot(best["x"], best["aptitude"], "o", label="Mejor", color="green")
         plot2.plot(worst["x"], worst["aptitude"], "o", label="Peor", color="red")
@@ -240,22 +255,80 @@ def show_main_window():
         label_info.grid(row=0, column=0, sticky="w")
 
         label_best = Label(
-            tmp_frame2, text=f"Mejor: {list_statistics[-1]['best']['aptitude']}"
+            tmp_frame2, text=f"Mejor: {statistics_history[-1]['best']['aptitude']}"
         )
         label_best.grid(row=1, column=0, sticky="w")
 
         label_worst = Label(
-            tmp_frame2, text=f"Peor: {list_statistics[-1]['worst']['aptitude']}"
+            tmp_frame2, text=f"Peor: {statistics_history[-1]['worst']['aptitude']}"
         )
         label_worst.grid(row=2, column=0, sticky="w")
 
         label_average = Label(
-            tmp_frame2, text=f"Promedio: {list_statistics[-1]['average']}"
+            tmp_frame2, text=f"Promedio: {statistics_history[-1]['average']}"
         )
         label_average.grid(row=3, column=0, sticky="w")
 
         for child in tmp_frame2.winfo_children():
             child.grid_configure(padx=10, pady=5)
+
+        # Generar una grafica por generacion, y guardarla en una carpeta
+        # La grafica será de tipo scatter, con los puntos de la poblacion
+        # Se destacaran los puntos de mejor y peor aptitud
+        # Se guardaran en una carpeta temporal
+        # Se generara un gif con las imagenes de las graficas
+        # Las graficas no se mostraran en pantalla
+
+        # Crear carpeta temporal
+        if os.path.exists("tmp"):
+            shutil.rmtree("tmp")
+        os.mkdir("tmp")
+
+        # Generar las graficas
+        for individual, i in zip(population_history, range(len(population_history))):
+            x = np.array([])
+            y = np.array([])
+            best = individual[0]
+            worst = individual[0]
+
+            for individual in individual:
+                x = np.append(x, individual["x"])
+                y = np.append(y, individual["aptitude"])
+
+                if individual["aptitude"] > best["aptitude"]:
+                    best = individual
+                if individual["aptitude"] < worst["aptitude"]:
+                    worst = individual
+
+            # Colocar los datos en la grafica
+            plt.figure()
+            plt.scatter(x, y, label="Poblacion")
+            plt.plot(best["x"], best["aptitude"], "o", label="Mejor", color="green")
+            plt.plot(worst["x"], worst["aptitude"], "o", label="Peor", color="red")
+            plt.xlabel("X")
+            plt.ylabel("f(x)")
+            plt.title(f"Generacion {i}")
+            plt.legend(loc="upper right")
+            plt.xlim(interval[0], interval[1])
+            plt.grid()
+
+            # Guardar la grafica en la carpeta temporal
+            plt.savefig(f"tmp/{i}.png")
+            plt.close()
+
+        # Generar video mp4 con las graficas
+
+        # Obtener lista de imagenes, hacer un sort para que se ordenen
+        images = natsorted([
+            os.path.join("tmp", fn)
+            for fn in os.listdir("tmp")
+            if fn.endswith(".png")
+        ])
+
+        clip = mpy.ImageSequenceClip(images, fps=1)
+
+        # Guardar el video
+        clip.write_videofile("animation.mp4")
 
         tmp_win2.mainloop()
         tmp_win1.mainloop()

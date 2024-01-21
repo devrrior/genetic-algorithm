@@ -147,6 +147,7 @@ def perform_genetic_algorithm(
     )
 
     statistics_history = []
+    population_history = []
     prev_population = init_population
 
     for _ in range(generations):
@@ -183,5 +184,6 @@ def perform_genetic_algorithm(
             new_population, statistics["best"], max_population_num
         )
         prev_population = purged_population
+        population_history.append(purged_population)
 
-    return prev_population, statistics_history
+    return population_history, statistics_history
