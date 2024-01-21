@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import moviepy.editor as mpy
 from natsort import natsorted
+from tkvideo import tkvideo
 
 
 import os
@@ -167,7 +168,7 @@ def show_main_window():
         plt.xlabel("Generaciones")
         plt.xlim(0, generations[-1])
         plt.ylabel("Aptitud")
-        plt.title(f"Historial de datos estadisticos (Generaciones: {generations})")
+        plt.title(f"Historial de datos estadisticos (Generaciones: {len(generations)})")
         plt.legend(loc="upper right")
         plt.grid()
         stats_figure.show()
@@ -253,8 +254,6 @@ def show_main_window():
 
         # Guardar el video
         clip.write_videofile("evolution_gens.mp4")
-
-        # Crear ventana donde reproduzca el video en infinite loop
 
         tmp_win2.mainloop()
 

@@ -7,7 +7,6 @@ fonttools==4.47.2
 idna==3.6
 imageio==2.33.1
 imageio-ffmpeg==0.4.9
-importlib-resources==6.1.1
 kiwisolver==1.4.5
 matplotlib==3.8.2
 moviepy==1.0.3
@@ -20,9 +19,9 @@ proglog==0.1.10
 pyparsing==3.1.1
 python-dateutil==2.8.2
 requests==2.31.0
+setuptools==69.0.3
 six==1.16.0
 sympy==1.12
 tkVideo==0.1
 tqdm==4.66.1
 urllib3==2.1.0
-zipp==3.17.0
