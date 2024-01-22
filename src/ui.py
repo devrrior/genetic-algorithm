@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import moviepy.editor as mpy
 from natsort import natsorted
-from tkvideo import tkvideo
 
 
 import os
@@ -174,6 +173,40 @@ def show_main_window():
         plt.grid()
         stats_figure.show()
 
+        last_population = population_history[-1]
+        best = last_population[0]
+        worst = last_population[0]
+        x = np.array([])
+        y = np.array([])
+
+        for individual in last_population:
+            x = np.append(x, individual["x"])
+            y = np.append(y, individual["aptitude"])
+            if individual["aptitude"] < best["aptitude"] and is_using_minimum:
+                best = individual
+            elif individual["aptitude"] > best["aptitude"] and not is_using_minimum:
+                best = individual
+
+            if individual["aptitude"] > worst["aptitude"] and is_using_minimum:
+                worst = individual
+            elif individual["aptitude"] < worst["aptitude"] and not is_using_minimum:
+                worst = individual
+
+        last_population_figure = plt.figure(2)
+        x_values = np.arange(interval[0], interval[1], 0.01)
+        y_values = np.array([solve_equation(equation, x) for x in x_values])
+        plt.plot(x_values, y_values, label="Funcion", color="#A0A0A0", zorder=1)
+        plt.scatter(x, y, label="Poblacion", color="#0900FF", zorder=2)
+        plt.plot(best["x"], best["aptitude"], "o", label="Mejor", color="#FF00FF", zorder=2)
+        plt.plot(worst["x"], worst["aptitude"], "o", label="Peor", color="red", zorder=2)
+        plt.xlabel("X")
+        plt.ylabel("f(x)")
+        plt.title(f"Ultima generacion (Generacion: {len(generations)})")
+        plt.legend(loc="upper right")
+        plt.xlim(interval[0], interval[1])
+        plt.grid()
+        last_population_figure.show()
+
         # Nueva ventana para decir cual fue el mejor, el peor y el promedio
         tmp_win2 = Tk()
         tmp_win2.title("Mejor, peor y promedio, de la última generación")
@@ -226,19 +259,24 @@ def show_main_window():
                 x = np.append(x, individual["x"])
                 y = np.append(y, individual["aptitude"])
 
-                if individual["aptitude"] > best["aptitude"]:
+                if individual["aptitude"] < best["aptitude"] and is_using_minimum:
                     best = individual
-                if individual["aptitude"] < worst["aptitude"]:
+                elif individual["aptitude"] > best["aptitude"] and not is_using_minimum:
+                    best = individual
+
+                if individual["aptitude"] > worst["aptitude"] and is_using_minimum:
+                    worst = individual
+                elif individual["aptitude"] < worst["aptitude"] and not is_using_minimum:
                     worst = individual
 
             # Colocar los datos en la grafica
             plt.figure()
 
-            plt.plot(x_values, y_values, label="Funcion", color="#3333FF")
+            plt.plot(x_values, y_values, label="Funcion", color="#A0A0A0", zorder=1)
 
-            plt.scatter(x, y, label="Poblacion")
-            plt.plot(best["x"], best["aptitude"], "o", label="Mejor", color="green")
-            plt.plot(worst["x"], worst["aptitude"], "o", label="Peor", color="red")
+            plt.scatter(x, y, label="Poblacion", color="#0900FF", zorder=2)
+            plt.plot(best["x"], best["aptitude"], "o", label="Mejor", color="#FF00FF", zorder=2)
+            plt.plot(worst["x"], worst["aptitude"], "o", label="Peor", color="red", zorder=2)
             plt.xlabel("X")
             plt.ylabel("f(x)")
             plt.title(f"Generacion {i}")
