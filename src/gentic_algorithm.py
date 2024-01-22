@@ -179,11 +179,12 @@ def perform_genetic_algorithm(
         statistics = get_statistics(new_population, is_using_min)
         statistics_history.append(statistics)
 
+        population_history.append(new_population)
+
         # Poda
         purged_population = deletion(
             new_population, statistics["best"], max_population_num
         )
         prev_population = purged_population
-        population_history.append(purged_population)
 
     return population_history, statistics_history
