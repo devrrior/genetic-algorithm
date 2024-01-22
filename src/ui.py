@@ -13,6 +13,7 @@ import shutil
 import numpy as np
 import matplotlib.pyplot as plt
 from tkinter import Tk, Frame, BOTH
+from utils import solve_equation
 
 
 def validate_probability(input_text):
@@ -212,6 +213,9 @@ def show_main_window():
         os.mkdir("tmp")
 
         # Generar las graficas
+        x_values = np.arange(interval[0], interval[1], 0.01)
+        y_values = np.array([solve_equation(equation, x) for x in x_values])
+
         for individual, i in zip(population_history, range(len(population_history))):
             x = np.array([])
             y = np.array([])
@@ -229,6 +233,9 @@ def show_main_window():
 
             # Colocar los datos en la grafica
             plt.figure()
+
+            plt.plot(x_values, y_values, label="Funcion", color="#3333FF")
+
             plt.scatter(x, y, label="Poblacion")
             plt.plot(best["x"], best["aptitude"], "o", label="Mejor", color="green")
             plt.plot(worst["x"], worst["aptitude"], "o", label="Peor", color="red")
