@@ -2,17 +2,36 @@ from tkinter import *
 from tkinter import messagebox
 from gentic_algorithm import perform_genetic_algorithm
 import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
 import numpy as np
 import moviepy.editor as mpy
 from natsort import natsorted
+import cv2 as cv
 
 
 import os
 import shutil
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.axes import Axes
 from tkinter import Tk, Frame, BOTH
 from utils import solve_equation
+
+
+def update_plot(
+    i, ax: Axes, x_values_func, y_values_func, x, y, best, worst, interval, iterator
+):
+    ax.clear()
+    ax.plot(x_values_func, y_values_func, label="Funcion", color="#A0A0A0", zorder=1)
+    ax.scatter(x[:i], y[:i], label="Poblacion", color="#0900FF", zorder=2)
+    ax.plot(best["x"], best["aptitude"], "o", label="Mejor", color="#FF00FF", zorder=3)
+    ax.plot(worst["x"], worst["aptitude"], "o", label="Peor", color="red", zorder=3)
+    ax.set_xlabel("X")
+    ax.set_ylabel("f(x)")
+    ax.set_title(f"Generacion {iterator}. Jose Fernando Gonzalez Guerrero 213357")
+    ax.legend(loc="upper right")
+    ax.set_xlim(interval[0], interval[1])
+    ax.grid()
 
 
 def validate_probability(input_text):
@@ -197,8 +216,12 @@ def show_main_window():
         y_values = np.array([solve_equation(equation, x) for x in x_values])
         plt.plot(x_values, y_values, label="Funcion", color="#A0A0A0", zorder=1)
         plt.scatter(x, y, label="Poblacion", color="#0900FF", zorder=2)
-        plt.plot(best["x"], best["aptitude"], "o", label="Mejor", color="#FF00FF", zorder=2)
-        plt.plot(worst["x"], worst["aptitude"], "o", label="Peor", color="red", zorder=2)
+        plt.plot(
+            best["x"], best["aptitude"], "o", label="Mejor", color="#FF00FF", zorder=2
+        )
+        plt.plot(
+            worst["x"], worst["aptitude"], "o", label="Peor", color="red", zorder=2
+        )
         plt.xlabel("X")
         plt.ylabel("f(x)")
         plt.title(f"Ultima generacion (Generacion: {len(generations)})")
@@ -249,6 +272,8 @@ def show_main_window():
         x_values = np.arange(interval[0], interval[1], 0.01)
         y_values = np.array([solve_equation(equation, x) for x in x_values])
 
+        videos_list = []
+
         for individual, i in zip(population_history, range(len(population_history))):
             x = np.array([])
             y = np.array([])
@@ -266,39 +291,56 @@ def show_main_window():
 
                 if individual["aptitude"] > worst["aptitude"] and is_using_minimum:
                     worst = individual
-                elif individual["aptitude"] < worst["aptitude"] and not is_using_minimum:
+                elif (
+                    individual["aptitude"] < worst["aptitude"] and not is_using_minimum
+                ):
                     worst = individual
 
-            # Colocar los datos en la grafica
-            plt.figure()
+            fig, ax = plt.subplots()
+            animation = FuncAnimation(
+                fig,
+                update_plot,
+                fargs=(ax, x_values, y_values, x, y, best, worst, interval, i),
+                interval=50,
+                cache_frame_data=False,
+                repeat=False,
+                frames=len(population_history),
+            )
 
-            plt.plot(x_values, y_values, label="Funcion", color="#A0A0A0", zorder=1)
+            videos_list.append((fig, animation))
 
-            plt.scatter(x, y, label="Poblacion", color="#0900FF", zorder=2)
-            plt.plot(best["x"], best["aptitude"], "o", label="Mejor", color="#FF00FF", zorder=2)
-            plt.plot(worst["x"], worst["aptitude"], "o", label="Peor", color="red", zorder=2)
-            plt.xlabel("X")
-            plt.ylabel("f(x)")
-            plt.title(f"Generacion {i}")
-            plt.legend(loc="upper right")
-            plt.xlim(interval[0], interval[1])
-            plt.grid()
+        animation_videos = []
+        videos = []
+        for fig, animation in videos_list:
+            animation.save(
+                f"tmp/{len(videos_list) - len(animation_videos)}.gif",
+                writer="pillow",
+                fps=60,
+                dpi=100,
+            )
+            plt.close(fig)
+            videos.append(
+                cv.VideoCapture(f"tmp/{len(videos_list) - len(animation_videos)}.gif")
+            )
+            os.remove(f"tmp/{len(videos_list) - len(animation_videos)}.gif")
 
-            # Guardar la grafica en la carpeta temporal
-            plt.savefig(f"tmp/{i}.png")
-            plt.close()
-
-        # Generar video mp4 con las graficas
-
-        # Obtener lista de imagenes, hacer un sort para que se ordenen
-        images = natsorted(
-            [os.path.join("tmp", fn) for fn in os.listdir("tmp") if fn.endswith(".png")]
+        # Unir los videos
+        height = int(videos[0].get(cv.CAP_PROP_FRAME_HEIGHT))
+        width = int(videos[0].get(cv.CAP_PROP_FRAME_WIDTH))
+        fps = int(videos[0].get(cv.CAP_PROP_FPS))
+        fourcc = cv.VideoWriter_fourcc(*"mp4v")
+        combined_video = cv.VideoWriter(
+            "combined_video.mp4", fourcc, fps, (width, height)
         )
-
-        clip = mpy.ImageSequenceClip(images, fps=1)
-
-        # Guardar el video
-        clip.write_videofile("evolution_gens.mp4")
+        for video in videos:
+            while True:
+                ret, frame = video.read()
+                if not ret:
+                    break
+                combined_video.write(frame)
+        for video in videos:
+            video.release()
+        combined_video.release()
 
         tmp_win2.mainloop()
 
